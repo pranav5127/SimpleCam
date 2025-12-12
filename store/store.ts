@@ -1,9 +1,11 @@
 import {configureStore} from "@reduxjs/toolkit";
 import permissionReducer from "./permissionSlice"
+import cameraReducer from "./cameraSlice"
 
 export const store = configureStore({
   reducer: {
-    permissions: permissionReducer
+    permissions: permissionReducer,
+    camera: cameraReducer,
   }
 })
 
