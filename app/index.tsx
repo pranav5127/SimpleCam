@@ -1,52 +1,114 @@
-import {View, Text, StyleSheet} from "react-native";
-import {CameraView, useCameraPermissions, useMicrophonePermissions} from "expo-camera";
-import * as MediaLibrary from "expo-media-library";
-import {useEffect, useRef} from "react";
+import {View, StyleSheet, Pressable, StatusBar, Platform} from "react-native";
+import {CameraType, CameraView, FlashMode} from "expo-camera";
+import {useRef, useState} from "react";
+import {useAppSelector} from "@/store/hooks";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 export default function Index() {
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions()
-  const [audioPermission, requestAudioPermission] = useMicrophonePermissions()
-  const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions()
-  const cameraRef = useRef<CameraView | null>(null)
+  const cameraRef = useRef<CameraView | null>(null);
+  const [facing, setFacing] = useState<CameraType>("back");
+  const [flash, setFlash] = useState<FlashMode>("off");
+  const perms = useAppSelector((s) => s.permissions);
 
-  // Check and grant permissions as soon as the app loads.
-  useEffect(() => {
-    askAllPermissions()
-  }, [])
-
-  const askAllPermissions = async () => {
-    if (!cameraPermission?.granted) {
-      await requestCameraPermission()
-    }
-    if (!audioPermission?.granted) {
-      await requestAudioPermission()
-    }
-    if (!mediaPermission?.granted) {
-      await requestMediaPermission()
-    }
-    alert("Button is pressed!")
+  if (perms.camera !== "granted") {
+    return <View/>;
   }
 
-  return (
-    <View style={styles.container}>
-      <Text>Initial Setup</Text>
+  function toggleCamera() {
+    setFacing((c: CameraType) => (c === "back" ? "front" : "back"));
+  }
 
-      <Text>Camera {cameraPermission?.granted ? "Granted" : "Not granted"}</Text>
-      <Text>Audio {audioPermission?.granted ? "Granted" : "Not granted"}</Text>
-      <Text>Media {mediaPermission?.granted ? "Granted" : "Not granted"}</Text>
-    </View>
-  )
+  function toggleFlash() {
+    setFlash((f: FlashMode) => (f === "off" ? "on" : "off"));
+  }
+
+  async function takePicture() {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync()
+      console.log(photo.uri)
+    }
+  }
+
+  const androidStatusBarProps =
+    Platform.OS === "android" ? {translucent: true, backgroundColor: "transparent"} : {};
+
+  const FlashIcon = () => {
+    if (flash === "on") {
+      return <MaterialIcons name="flash-on" size={28} color="white"/>
+
+    } else if (flash === "auto") {
+      return <MaterialIcons name="flash-auto" size={28} color="white"/>
+
+    } else {
+      return <MaterialIcons name="flash-off" size={28} color="white"/>
+    }
+
+  }
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content" {...androidStatusBarProps} />
+      <View style={styles.container}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+          flash={flash}
+        />
+
+        <View style={styles.buttonContainer}>
+          {/* Toggle Camera button */}
+          <Pressable onPress={toggleCamera} style={styles.icon}>
+            <MaterialIcons name="flip-camera-android" size={28} color="white"/>
+          </Pressable>
+
+          {/* Shutter Button */}
+          <Pressable onPress={takePicture} style={styles.icon}>
+            <MaterialIcons name="circle" size={64} color="white"/>
+          </Pressable>
+
+          {/* Flash Button */}
+          <Pressable onPress={toggleFlash} style={styles.icon}>
+            <FlashIcon/>
+          </Pressable>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "black"
+  }
+  ,
   container: {
     flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    padding: 10,
-  },
-  button: {
-    borderWidth: 1,
-    borderRadius: 10,
+    backgroundColor: "black"
   }
-})
+  ,
+  camera: {
+    flex: 1,
+    width: "100%",
+  }
+  ,
+  buttonContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 16,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.2)",
+    paddingVertical: 8,
+    marginHorizontal: 12,
+    borderRadius: 12,
+  }
+  ,
+  icon: {
+    padding: 8
+  }
+  ,
+});

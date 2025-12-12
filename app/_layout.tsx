@@ -42,7 +42,6 @@ function PermissionsManager() {
         dispatch(setMediaPermission(res?.granted ? "granted" : "denied"))
       }
 
-      Alert.alert("Permissions requested")
     } catch (err) {
       console.warn("Permission request error:", err)
     }
