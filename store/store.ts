@@ -3,7 +3,7 @@ import permissionReducer from "./permissionSlice"
 
 export const store = configureStore({
   reducer: {
-    permissionReducer
+    permissions: permissionReducer
   }
 })
 
