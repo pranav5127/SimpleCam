@@ -1,31 +1,35 @@
-import {View, StyleSheet, Pressable, StatusBar, Platform} from "react-native";
-import {CameraType, CameraView, FlashMode} from "expo-camera";
-import {useRef, useState} from "react";
-import {useAppSelector} from "@/store/hooks";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import {SafeAreaView} from "react-native-safe-area-context";
+import {View, StyleSheet, Pressable, Text} from "react-native"
+import {CameraView} from "expo-camera"
+import {useRef} from "react"
+import {useAppDispatch, useAppSelector} from "@/store/hooks"
+import MaterialIcons from "@expo/vector-icons/MaterialIcons"
+import {cycleCameraFacing, cycleCameraFlash, cycleCameraMode, enableTorch} from "@/store/cameraSlice"
+import {FlashIcon} from "@/components/FlashIcon";
 
 export default function Index() {
-  const cameraRef = useRef<CameraView | null>(null);
-  const [facing, setFacing] = useState<CameraType>("back");
-  const [flash, setFlash] = useState<FlashMode>("off");
-  const perms = useAppSelector((s) => s.permissions);
-  const FLASH_MODE: FlashMode[] = ["on", "off", "auto"]
+  const cameraRef = useRef<CameraView | null>(null)
+  const perms = useAppSelector((s) => s.permissions)
+  const dispatch = useAppDispatch()
+  const {facing, flash, mode, torch} = useAppSelector((s) => s.camera)
 
   if (perms.camera !== "granted") {
-    return <View/>;
+    return <View/>
   }
 
   function toggleCamera() {
-    setFacing((c: CameraType) => (c === "back" ? "front" : "back"));
+    dispatch(cycleCameraFacing())
   }
 
   function toggleFlash() {
-    setFlash((prev: FlashMode) => {
-        const index = FLASH_MODE.indexOf(prev)
-        return FLASH_MODE[(index+1) % FLASH_MODE.length]
-      }
-    );
+    if (mode === "video") {
+      dispatch(enableTorch())
+    } else {
+      dispatch(cycleCameraFlash())
+    }
+  }
+
+  function toggleCameraMode() {
+    dispatch(cycleCameraMode())
   }
 
   async function takePicture() {
@@ -35,85 +39,144 @@ export default function Index() {
     }
   }
 
-  const androidStatusBarProps =
-    Platform.OS === "android" ? {translucent: true, backgroundColor: "transparent"} : {};
-
-  const FlashIcon = () => {
-    if (flash === "on") {
-      return <MaterialIcons name="flash-on" size={28} color="white"/>
-
-    } else if (flash === "auto") {
-      return <MaterialIcons name="flash-auto" size={28} color="white"/>
-
-    } else {
-      return <MaterialIcons name="flash-off" size={28} color="white"/>
-    }
-
-  }
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" {...androidStatusBarProps} />
-      <View style={styles.container}>
-        <CameraView
-          ref={cameraRef}
-          style={styles.camera}
-          facing={facing}
-          flash={flash}
-        />
+    <View style={styles.container}>
+      {/* Camera preview */}
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing={facing}
+        mode={mode}
+        flash={flash}
+        enableTorch={torch}
+      />
 
-        <View style={styles.buttonContainer}>
-          {/* Toggle Camera button */}
-          <Pressable onPress={toggleCamera} style={styles.icon}>
-            <MaterialIcons name="flip-camera-android" size={28} color="white"/>
-          </Pressable>
+      <View style={styles.topOverlay} />
+      <View style={styles.bottomOverlay} />
 
-          {/* Shutter Button */}
-          <Pressable onPress={takePicture} style={styles.icon}>
-            <MaterialIcons name="circle" size={64} color="white"/>
-          </Pressable>
+      {/* Flash toggle button */}
+      <Pressable onPress={toggleFlash} style={styles.flashButton}>
+        <FlashIcon />
+      </Pressable>
 
-          {/* Flash Button */}
-          <Pressable onPress={toggleFlash} style={styles.icon}>
-            <FlashIcon/>
-          </Pressable>
-        </View>
+      {/* Mode slider above shutter */}
+      <View style={styles.modeSlider}>
+        <Pressable onPress={toggleCameraMode}>
+          <Text
+            style={[
+              styles.modeText,
+              mode === "picture" && styles.modeActive,
+            ]}
+          >
+            PHOTO
+          </Text>
+        </Pressable>
+
+        <Pressable onPress={toggleCameraMode}>
+          <Text
+            style={[
+              styles.modeText,
+              mode === "video" && styles.modeActive,
+            ]}
+          >
+            VIDEO
+          </Text>
+        </Pressable>
       </View>
-    </SafeAreaView>
-  );
+
+      {/* Bottom camera controls  */}
+      <View style={styles.bottomControls}>
+        {/* Spacer */}
+        <View style={{ width: 48 }} />
+
+        {/* Shutter button */}
+        <Pressable onPress={takePicture} style={styles.shutter}>
+          <MaterialIcons name="circle" size={81} color="white" />
+        </Pressable>
+
+        {/* Camera facing toggle */}
+        <Pressable onPress={toggleCamera} style={styles.icon}>
+          <MaterialIcons name="flip-camera-android" size={28} color="white" />
+        </Pressable>
+      </View>
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "black"
-  }
-  ,
   container: {
     flex: 1,
-    backgroundColor: "black"
-  }
-  ,
+    backgroundColor: "black",
+  },
   camera: {
     flex: 1,
     width: "100%",
-  }
-  ,
-  buttonContainer: {
+  },
+  topOverlay: {
     position: "absolute",
+    top: 0,
     left: 0,
     right: 0,
-    bottom: 16,
+    height: 140,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  bottomOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 220,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  flashButton: {
+    position: "absolute",
+    top: 64,
+    right: 16,
+    zIndex: 10,
+    padding: 10,
+    borderRadius: 24,
+  },
+  bottomControls: {
+    position: "absolute",
+    bottom: 64,
+    left: 0,
+    right: 0,
     flexDirection: "row",
-    justifyContent: "space-evenly",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.2)",
-    paddingVertical: 8,
-    marginHorizontal: 12,
-    borderRadius: 12,
-  }
-  ,
+    justifyContent: "space-between",
+    paddingHorizontal: 32,
+    zIndex: 10,
+  },
+  modeSlider: {
+    position: "absolute",
+    bottom: 170,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    zIndex: 10,
+  },
+  modeText: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 14,
+    fontWeight: "500",
+    letterSpacing: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  modeActive: {
+    color: "white",
+    fontWeight: "700",
+    backgroundColor: "#333333",
+  },
+  shutter: {
+    zIndex: 10,
+    borderRadius: 40,
+  },
   icon: {
-    padding: 8
-  }
-  ,
-});
+    padding: 10,
+    borderRadius: 24,
+  },
+})
