@@ -6,6 +6,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons"
 import {cycleCameraFacing, cycleCameraFlash, cycleCameraMode, enableTorch} from "@/store/cameraSlice"
 import {FlashIcon} from "@/components/FlashIcon";
 import {ShutterButton} from "@/components/ShutterButton";
+import {savePicture } from "@/services/savePicture";
 
 export default function Index() {
   const cameraRef = useRef<CameraView | null>(null)
@@ -36,10 +37,9 @@ export default function Index() {
   async function takePicture() {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync()
-      console.log(photo.uri)
+      await savePicture(photo.uri)
     }
   }
-
 
   return (
     <View style={styles.container}>
