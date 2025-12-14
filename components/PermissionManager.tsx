@@ -9,7 +9,9 @@ import * as MediaLibrary from "expo-media-library";
 import {useEffect} from "react";
 
 
-
+/*
+* PermissionManger is a component to manger Camera, Audio and Media permissions
+* */
 export default function PermissionsManager() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions()
   const [audioPermission, requestAudioPermission] = useMicrophonePermissions()

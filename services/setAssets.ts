@@ -1,6 +1,6 @@
 import * as MediaLibrary from "expo-media-library"
 
-export async function savePicture(uri: string) {
+export async function setAssets(uri: string) {
   const asset = await MediaLibrary.createAssetAsync(uri)
   try {
     await MediaLibrary.createAlbumAsync('Stream', asset)

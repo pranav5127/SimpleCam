@@ -1,9 +1,11 @@
 import {CameraMode, CameraType, FlashMode} from "expo-camera"
-import {createSlice} from "@reduxjs/toolkit"
+import {createSlice, PayloadAction} from "@reduxjs/toolkit"
+import {Asset} from "expo-media-library";
 
 export type CameraFacing = CameraType
 export type CameraFlash = FlashMode
 export type Mode = CameraMode
+export type LatestAsset = Asset | null
 
 export interface CameraState {
   facing: CameraFacing
@@ -11,6 +13,7 @@ export interface CameraState {
   mode: Mode
   torch: boolean
   flashDisabled: boolean
+  latestAsset: LatestAsset
 }
 
 const FLASH_MODES: CameraFlash[] = ["on", "off", "auto"]
@@ -20,7 +23,8 @@ const initialState: CameraState = {
   flash: "off",
   mode: "picture",
   torch: false,
-  flashDisabled: false
+  flashDisabled: false,
+  latestAsset: null
 }
 
 const cameraSlice = createSlice({
@@ -55,8 +59,8 @@ const cameraSlice = createSlice({
       state.torch = !state.torch
     },
 
-    disableFlash(state) {
-
+    setLatestAsset(state, action: PayloadAction<Asset | null>) {
+      state.latestAsset = action.payload
     }
 
   }
@@ -67,7 +71,7 @@ export const {
   cycleCameraFlash,
   cycleCameraMode,
   enableTorch,
-  disableFlash
+  setLatestAsset
 } = cameraSlice.actions
 
 export default cameraSlice.reducer

@@ -3,10 +3,12 @@ import {CameraView} from "expo-camera"
 import {useRef} from "react"
 import {useAppDispatch, useAppSelector} from "@/store/hooks"
 import MaterialIcons from "@expo/vector-icons/MaterialIcons"
-import {cycleCameraFacing, cycleCameraFlash, cycleCameraMode, enableTorch} from "@/store/cameraSlice"
+import {cycleCameraFacing, cycleCameraFlash, cycleCameraMode, enableTorch, setLatestAsset} from "@/store/cameraSlice"
 import {FlashIcon} from "@/components/FlashIcon";
 import {ShutterButton} from "@/components/ShutterButton";
-import {savePicture } from "@/services/savePicture";
+import {setAssets } from "@/services/setAssets";
+import GalleryPreview from "@/components/GalleryPreview";
+import {getAssets} from "@/services/getAssets";
 
 export default function Index() {
   const cameraRef = useRef<CameraView | null>(null)
@@ -35,11 +37,15 @@ export default function Index() {
   }
 
   async function takePicture() {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync()
-      await savePicture(photo.uri)
-    }
+    if (!cameraRef.current) return
+
+    const photo = await cameraRef.current.takePictureAsync({ quality: 1 })
+    await setAssets(photo.uri)
+
+    const assets = await getAssets()
+    dispatch(setLatestAsset(assets[0] ?? null))
   }
+
 
   return (
     <View style={styles.container}>
@@ -89,8 +95,7 @@ export default function Index() {
       {/* Bottom camera controls  */}
       <View style={styles.bottomControls}>
         {/* Spacer */}
-        <View style={{ width: 48 }} />
-
+        <GalleryPreview />
         {/* Shutter button */}
         <Pressable
           onPress={takePicture}
