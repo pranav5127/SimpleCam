@@ -10,6 +10,7 @@ export default function RootLayout() {
       <PermissionsManager />
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="gallery" />
       </Stack>
     </Provider>
   );

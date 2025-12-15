@@ -5,7 +5,7 @@ import {Asset} from "expo-media-library";
 export type CameraFacing = CameraType
 export type CameraFlash = FlashMode
 export type Mode = CameraMode
-export type LatestAsset = Asset | null
+export type LatestAsset = Asset[] | null
 
 export interface CameraState {
   facing: CameraFacing
@@ -13,7 +13,7 @@ export interface CameraState {
   mode: Mode
   torch: boolean
   flashDisabled: boolean
-  latestAsset: LatestAsset
+  latestAssets: LatestAsset
   isRecording: boolean
   recordingTime: number
 }
@@ -26,7 +26,7 @@ const initialState: CameraState = {
   mode: "picture",
   torch: false,
   flashDisabled: false,
-  latestAsset: null,
+  latestAssets: null,
   isRecording: false,
   recordingTime: 0
 }
@@ -63,8 +63,8 @@ const cameraSlice = createSlice({
       state.torch = !state.torch
     },
 
-    setLatestAsset(state, action: PayloadAction<Asset | null>) {
-      state.latestAsset = action.payload
+    setLatestAsset(state, action: PayloadAction<Asset[] | null>) {
+      state.latestAssets = action.payload
     },
 
     startRecording(state) {

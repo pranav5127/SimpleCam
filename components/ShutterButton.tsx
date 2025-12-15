@@ -9,7 +9,7 @@ export default function ShutterButton({pressed}: { pressed: boolean }) {
     return (
       <MaterialIcons
         name={isRecording ? "stop" : "circle"}
-        size={isRecording ? 48 : 81}
+        size={isRecording ? 81 : 81}
         color={isRecording ? "red" : pressed ? "#ff8080" : "red"}
       />
     )

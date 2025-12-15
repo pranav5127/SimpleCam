@@ -77,7 +77,7 @@ export default function Index() {
     await setAssets(photo.uri)
 
     const assets = await getAssets()
-    dispatch(setLatestAsset(assets[0] ?? null))
+    dispatch(setLatestAsset(assets ?? null))
   }
 
   async function recordVideo() {
@@ -94,7 +94,7 @@ export default function Index() {
         await setAssets(video.uri)
 
         const assets = await getAssets()
-        dispatch(setLatestAsset(assets[0] ?? null))
+        dispatch(setLatestAsset(assets ?? null))
       } finally {
         dispatch(stopRecording())
       }
