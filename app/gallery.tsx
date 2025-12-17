@@ -1,5 +1,6 @@
 import { View, FlatList, Dimensions, StyleSheet } from "react-native"
 import { Image } from "expo-image"
+import { VideoView, useVideoPlayer } from "expo-video"
 import { useAppSelector } from "@/store/hooks"
 
 const { width, height } = Dimensions.get("window")
@@ -13,7 +14,6 @@ export default function Gallery() {
 
   return (
     <FlatList
-      key={"horizontal-gallery"}
       data={assets}
       keyExtractor={(item) => item.id}
       horizontal
@@ -26,16 +26,39 @@ export default function Gallery() {
       })}
       renderItem={({ item }) => (
         <View style={styles.page}>
-          <Image
-            source={{ uri: item.uri }}
-            style={styles.image}
-            contentFit="contain"
-          />
+          {item.mediaType === "video" ? (
+            <GalleryVideo uri={item.uri} />
+          ) : (
+            <Image
+              source={{ uri: item.uri }}
+              style={styles.media}
+              contentFit="contain"
+            />
+          )}
         </View>
       )}
     />
   )
 }
+
+
+
+function GalleryVideo({ uri }: { uri: string }) {
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = true
+    player.pause()
+  })
+
+  return (
+    <VideoView
+      style={styles.media}
+      player={player}
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  )
+}
+
 
 const styles = StyleSheet.create({
   page: {
@@ -45,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  image: {
+  media: {
     width,
     height,
   },
