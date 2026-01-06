@@ -1,6 +1,6 @@
 # SimpleCam
 
-Stream is a small Expo-based React Native app that demonstrates camera recording, media management, and a lightweight Redux store. It uses Expo Router for navigation and Expo Camera / Media Library for media capture and storage.
+SimpleCam is a small Expo-based React Native app that demonstrates camera recording, media management, and a lightweight Redux store. It uses Expo Router for navigation and Expo Camera / Media Library for media capture and storage.
 
 ## Table of contents
 
